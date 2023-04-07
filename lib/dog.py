@@ -46,9 +46,12 @@ class Dog:
     
     @classmethod
     def new_from_db(cls, row):
-        dog = cls(row[1], row[2])
-        dog.id = row[0]
-        return dog
+        try:
+            dog = cls(row[1], row[2])
+            dog.id = row[0]
+            return dog
+        except:
+            return None
     
     @classmethod
     def get_all(cls):
@@ -71,8 +74,22 @@ class Dog:
     
     @classmethod
     def find_or_create_by(cls, name, breed): 
-        pass
+        current = CURSOR.execute("SELECT * FROM dogs WHERE name = ?", (name,)).fetchone()
+        #conv = [cls.new_from_db(row) for row in current]
+        if (current == None):
+            newDog = Dog(name, breed)
+            newDog.save()
+            return newDog
+        else:
+            return [cls.new_from_db(row) for row in current]
 
-    @classmethod
-    def update():
-        pass
+    def update(self):
+        # UPDATE table_name
+        # SET column1 = value1, column2 = value2, ...
+        # WHERE condition;
+        sql = """
+        UPDATE dogs
+        SET name = ?, breed = ?
+        WHERE id = ?
+        """
+        CURSOR.execute(sql, (self.name, self.breed, self.id))
